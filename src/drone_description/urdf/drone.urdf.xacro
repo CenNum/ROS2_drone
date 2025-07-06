@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="my_drone">
+
+    <link name="base_footprint" />
+
+    <link name="base_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <box size="0.2 0.2 0.05" />
+            </geometry>
+            <material name="gray">
+                <color rgba="0.3 0.3 0.3 1.0" />
+            </material>
+        </visual>
+
+        <visual>
+            <origin xyz="0.1 0.1 0.03" rpy="0 0 0" />
+            <geometry>
+                <cylinder radius="0.12" length="0.01"/>
+            </geometry>
+            <material name="red">
+                <color rgba="1 0 0 1"/>
+            </material>
+        </visual>
+
+        <visual>
+            <origin xyz="0.1 -0.1 0.03" rpy="0 0 0" />
+            <geometry>
+                <cylinder radius="0.12" length="0.01"/>
+            </geometry>
+            <material name="white">
+                <color rgba="1 1 1 1"/>
+            </material>
+        </visual>
+        
+        <visual>
+            <origin xyz="-0.1 -0.1 0.03" rpy="0 0 0" />
+            <geometry>
+                <cylinder radius="0.12" length="0.01"/>
+            </geometry>
+            <material name="red">
+                <color rgba="1 0 0 1"/>
+            </material>
+        </visual>
+
+        <visual>
+            <origin xyz="-0.1 0.1 0.03" rpy="0 0 0" />
+            <geometry>
+                <cylinder radius="0.12" length="0.01"/>
+            </geometry>
+            <material name="white">
+                <color rgba="1 1 1 1"/>
+            </material>
+        </visual>
+
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <box size="0.2 0.2 0.05" />
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="d435_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 1.57" />
+            <geometry>
+                <box size="0.09 0.025 0.025" />
+            </geometry>
+            <material name="blue">
+                <color rgba="0.1 0.1 0.8 1.0" />
+            </material>
+        </visual>
+    </link>
+
+    <link name="t265_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 1.57" />
+            <geometry>
+                <box size="0.108 0.025 0.013" />
+            </geometry>
+            <material name="green">
+                <color rgba="0.1 0.8 0.1 1.0" />
+            </material>
+        </visual>
+    </link>
+
+    <joint name="base_joint" type="fixed">
+        <parent link="base_footprint" />
+        <child link="base_link" />
+        <origin xyz="0.0 0.0 0.03" rpy="0 0 0" />
+    </joint>
+
+    <joint name="base_to_d435_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="d435_link"/>
+        <origin xyz="0.16 0 0" rpy="0 0 0" />
+    </joint>
+
+    <joint name="base_to_t265_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="t265_link"/>
+        <origin xyz="0.16 0 -0.02" rpy="0 0 0" />
+    </joint>
+
+</robot>

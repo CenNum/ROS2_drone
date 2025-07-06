@@ -1,0 +1,11 @@
+digraph G {
+node [shape=box];
+"base_link" [label="base_link"];
+"d435_link" [label="d435_link"];
+"t265_link" [label="t265_link"];
+node [shape=ellipse, color=blue, fontcolor=blue];
+"base_link" -> "base_to_d435_joint" [label="xyz: 0.1 0 -0.02 \nrpy: 0 -0 0"]
+"base_to_d435_joint" -> "d435_link"
+"base_link" -> "base_to_t265_joint" [label="xyz: 0 0 -0.05 \nrpy: 0 -0 0"]
+"base_to_t265_joint" -> "t265_link"
+}
