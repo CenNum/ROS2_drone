@@ -1,0 +1,211 @@
+# ======================================================================================
+# Nav2 参数文件 - 针对无人机 (D435 + T265)
+#
+# 关键假设:
+# - 无人机是全向移动的 (Holonomic)
+# - 使用T265作为里程计 (odom -> base_link)
+# - 使用D435转换后的2D激光扫描作为障碍物感知
+# - 导航在一个固定的高度层进行
+# ======================================================================================
+
+# 全局参数
+amcl:
+  ros__parameters:
+    use_map_topic: true
+    # --- 重要: AMCL用于修正T265的长期漂移，将无人机定位在全局地图中 ---
+    # 它监听D435转换后的 /scan 话题
+    scan_topics: ["/scan"]
+    # 设置粒子滤波参数
+    min_particles: 500
+    max_particles: 3000
+    particle_hit_threshold: 0.1
+    particle_miss_threshold: 0.9
+    initial_pose:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      yaw: 0.0
+    # 坐标系设置
+    global_frame_id: "map"
+    odom_frame_id: "odom"
+    base_frame_id: "base_link"
+    # 根据T265的漂移情况调整
+    odom_model_type: "diff" # 对于无人机，"diff"或"omni"都可以尝试
+    transform_tolerance: 1.0
+    recovery_alpha_slow: 0.0
+    recovery_alpha_fast: 0.0
+
+controller_server:
+  ros__parameters:
+    use_sim_time: false
+    controller_frequency: 20.0
+    # --- 重要: 使用DWB控制器 ---
+    FollowPath:
+      plugin: "dwb_core::DWBLocalPlanner"
+      # --- 关键: 无人机是全向移动机器人 ---
+      holonomic: true
+      # 速度限制 (单位: m/s, rad/s) - 请根据您的无人机实际情况调整
+      max_vel_x: 1.0
+      min_vel_x: -1.0 # 允许后退
+      max_vel_y: 1.0
+      min_vel_y: -1.0
+      max_speed_xy: 1.0
+      min_speed_xy: 0.1
+      max_vel_theta: 1.5
+      min_vel_theta: -1.5
+      # 加速度限制
+      acc_lim_x: 2.5
+      acc_lim_y: 2.5
+      acc_lim_theta: 3.2
+      decel_lim_x: -2.5
+      decel_lim_y: -2.5
+      decel_lim_theta: -3.2
+      # 路径跟踪的容忍度
+      xy_goal_tolerance: 0.25
+      yaw_goal_tolerance: 0.25
+      # 其他DWB参数
+      critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
+      BaseObstacle.scale: 0.02
+      PathAlign.scale: 32.0
+      PathAlign.forward_point_distance: 0.1
+      GoalAlign.scale: 24.0
+      PathDist.scale: 32.0
+      GoalDist.scale: 24.0
+      RotateToGoal.scale: 32.0
+
+planner_server:
+  ros__parameters:
+    use_sim_time: false
+    planner_plugins: ["GridBased"]
+    GridBased:
+      plugin: "nav2_smac_planner/SmacPlannerHybrid" # 适用于全向移动的A*规划器
+      tolerance: 0.5
+      downsample_costmap: false
+      downsampling_factor: 1
+      allow_unknown: false # 安全起见，不允许穿越未知区域
+      max_iterations: 1000000
+      max_on_approach_iterations: 1000
+
+# 通用服务器
+behavior_server:
+  ros__parameters:
+    costmap_topic: "local_costmap/costmap_raw"
+    footprint_topic: "local_costmap/published_footprint"
+    cycle_frequency: 10.0
+    behavior_plugins: ["spin", "backup", "drive_on_heading", "wait"]
+    spin:
+      plugin: "nav2_behaviors/Spin"
+    backup:
+      plugin: "nav2_behaviors/BackUp"
+    drive_on_heading:
+      plugin: "nav2_behaviors/DriveOnHeading"
+    wait:
+      plugin: "nav2_behaviors/Wait"
+
+bt_navigator:
+  ros__parameters:
+    use_sim_time: false
+    default_bt_xml_filename: "navigate_w_replanning_and_recovery.xml" # 默认行为树
+    plugin_lib_names:
+      - nav2_compute_path_to_pose_action_bt_node
+      - nav2_follow_path_action_bt_node
+      - nav2_back_up_action_bt_node
+      - nav2_spin_action_bt_node
+      - nav2_wait_action_bt_node
+      - nav2_clear_costmap_service_bt_node
+      - nav2_is_stuck_condition_bt_node
+      - nav2_goal_reached_condition_bt_node
+      - nav2_goal_updated_condition_bt_node
+      - nav2_initial_pose_received_condition_bt_node
+      - nav2_reinitialize_global_localization_service_bt_node
+      - nav2_rate_controller_bt_node
+      - nav2_distance_controller_bt_node
+      - nav2_speed_controller_bt_node
+      - nav2_truncate_path_action_bt_node
+      - nav2_goal_updater_node_bt_node
+      - nav2_recovery_node_bt_node
+      - nav2_pipeline_sequence_bt_node
+      - nav2_round_robin_node_bt_node
+      - nav2_transform_available_condition_bt_node
+      - nav2_time_expired_condition_bt_node
+      - nav2_distance_traveled_condition_bt_node
+      - nav2_single_trigger_bt_node
+
+waypoint_follower:
+  ros__parameters:
+    loop_rate: 20
+    stop_on_failure: false
+    waypoint_task_executor_plugin: "wait_at_waypoint"
+    wait_at_waypoint:
+      plugin: "nav2_waypoint_follower::WaitAtWaypoint"
+      enabled: true
+      waypoint_pause_duration: 0
+
+# --- 全局代价地图: 用于长期路径规划 ---
+global_costmap:
+  ros__parameters:
+    # 坐标系
+    global_frame: "map"
+    robot_base_frame: "base_link"
+    # 地图更新频率
+    update_frequency: 1.0
+    publish_frequency: 1.0
+    # --- 重要: 无人机的尺寸和形状 ---
+    # 这里用一个0.5m x 0.5m的正方形代表无人机，请根据实际尺寸修改
+    footprint: "[ [0.25, 0.25], [0.25, -0.25], [-0.25, -0.25], [-0.25, 0.25] ]"
+    # 静态地图层: 加载您预先制作的地图
+    static_layer:
+      plugin: "nav2_costmap_2d::StaticLayer"
+      map_subscribe_transient_local: True
+    # 障碍物层: 使用D435的数据
+    obstacle_layer:
+      plugin: "nav2_costmap_2d::VoxelLayer" # 3D空间感知用VoxelLayer更好
+      enabled: true
+      observation_sources: depth_camera_scan
+      depth_camera_scan:
+        topic: "/scan" # D435转换后的LaserScan话题
+        max_obstacle_height: 2.0 # 忽略高于此高度的障碍物 (假设无人机飞行高度<2m)
+        min_obstacle_height: 0.1 # 忽略低于此高度的障碍物 (地面)
+        data_type: "LaserScan"
+        clearing: true
+        marking: true
+    # 膨胀层: 在障碍物周围创建安全缓冲区
+    inflation_layer:
+      plugin: "nav2_costmap_2d::InflationLayer"
+      cost_scaling_factor: 3.0
+      inflation_radius: 0.55
+    # 插件列表
+    plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
+
+# --- 局部代价地图: 用于实时避障和速度控制 ---
+local_costmap:
+  ros__parameters:
+    # 坐标系
+    global_frame: "odom" # 局部地图跟随里程计移动
+    robot_base_frame: "base_link"
+    # 更新频率
+    update_frequency: 5.0
+    publish_frequency: 2.0
+    # 地图尺寸
+    width: 3
+    height: 3
+    resolution: 0.05
+    rolling_window: true # 局部地图会跟随机器人移动
+    # 插件
+    plugins: ["obstacle_layer", "inflation_layer"]
+    # 障碍物层和膨胀层的配置与global_costmap类似，但通常更关注实时性
+    obstacle_layer:
+      plugin: "nav2_costmap_2d::VoxelLayer"
+      enabled: true
+      observation_sources: depth_camera_scan
+      depth_camera_scan:
+        topic: "/scan"
+        max_obstacle_height: 2.0
+        min_obstacle_height: 0.1
+        data_type: "LaserScan"
+        clearing: true
+        marking: true
+    inflation_layer:
+      plugin: "nav2_costmap_2d::InflationLayer"
+      cost_scaling_factor: 3.0
+      inflation_radius: 0.55

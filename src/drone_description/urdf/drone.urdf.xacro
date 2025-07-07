@@ -62,7 +62,7 @@
         </collision>
     </link>
 
-    <link name="d435_link">
+    <link name="Real_D400_link">
         <visual>
             <origin xyz="0 0 0" rpy="0 0 1.57" />
             <geometry>
@@ -74,7 +74,7 @@
         </visual>
     </link>
 
-    <link name="t265_link">
+    <link name="Real_T265_link">
         <visual>
             <origin xyz="0 0 0" rpy="0 0 1.57" />
             <geometry>
@@ -92,16 +92,16 @@
         <origin xyz="0.0 0.0 0.03" rpy="0 0 0" />
     </joint>
 
-    <joint name="base_to_d435_joint" type="fixed">
+    <joint name="base_to_d400_joint" type="fixed">
         <parent link="base_link"/>
-        <child link="d435_link"/>
+        <child link="Real_D400_link"/>
         <origin xyz="0.16 0 0" rpy="0 0 0" />
     </joint>
 
     <joint name="base_to_t265_joint" type="fixed">
         <parent link="base_link"/>
-        <child link="t265_link"/>
-        <origin xyz="0.16 0 -0.02" rpy="0 0 0" />
+        <child link="Real_T265_link"/>
+        <origin xyz="0.16 0 0.02" rpy="0 0 0" />
     </joint>
 
 </robot>
