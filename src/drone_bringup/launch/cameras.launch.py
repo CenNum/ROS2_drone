@@ -33,8 +33,8 @@ def generate_launch_description():
             'enable_fisheye12': 'false',
             'enable_fisheye22': 'false',
             'publish_odom_tf2': 'true',
-            'topic_odom_in2': 'odom',
-            'pose_frame_id2': 'T265_pose_frame',
+            # 'topic_odom_in2': 'odom',
+            # 'pose_frame_id2': 'T265_pose_frame',
         }.items()
     )
 

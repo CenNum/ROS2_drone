@@ -62,7 +62,7 @@
         </collision>
     </link>
 
-    <link name="Real_D400_link">
+    <link name="D400_link">
         <visual>
             <origin xyz="0 0 0" rpy="0 0 1.57" />
             <geometry>
@@ -94,7 +94,7 @@
 
     <joint name="base_to_d400_joint" type="fixed">
         <parent link="base_link"/>
-        <child link="Real_D400_link"/>
+        <child link="D400_link"/>
         <origin xyz="0.16 0 0" rpy="0 0 0" />
     </joint>
 
